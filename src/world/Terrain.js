@@ -42,6 +42,21 @@ export function createTerrain(scene) {
     color: 0x8aa06a,
   });
 
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uMapRadius = { value: CONFIG.mapRadius };
+    shader.vertexShader = `varying vec3 vTerrainWorldPos;\n` + shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      `#include <begin_vertex>
+       vTerrainWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
+    );
+    shader.fragmentShader = `varying vec3 vTerrainWorldPos;\nuniform float uMapRadius;\n` +
+      shader.fragmentShader.replace(
+        '#include <clipping_planes_fragment>',
+        `#include <clipping_planes_fragment>
+         if (length(vTerrainWorldPos.xz) > uMapRadius) discard;`,
+      );
+  };
+
   const mesh = new THREE.Mesh(geometry, material);
   mesh.rotation.x = -Math.PI / 2;
   mesh.receiveShadow = true;

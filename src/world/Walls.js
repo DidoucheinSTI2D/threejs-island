@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { CONFIG } from '../config.js';
 
 export function createWalls(scene) {
-  const radius = CONFIG.mapRadius + 2;
+  const radius = CONFIG.mapRadius;
   const height = 22;
   const segments = 96;
 
