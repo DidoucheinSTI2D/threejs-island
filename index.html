@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Projet Three.js — HETIC 2026</title>
+  <style>
+    html, body { margin: 0; padding: 0; overflow: hidden; background: #000; }
+    canvas { display: block; }
+    #loader {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: #0a0608;
+      color: #e8d4b8;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      z-index: 10;
+      transition: opacity 0.6s ease;
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+    #hud {
+      position: fixed; top: 10px; left: 10px;
+      color: #e8d4b8;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 11px;
+      background: rgba(0,0,0,0.35);
+      padding: 6px 10px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 5;
+      line-height: 1.5;
+    }
+    #music {
+      position: fixed;
+      right: 14px; bottom: 14px;
+      background: rgba(10, 6, 8, 0.78);
+      border: 1px solid rgba(232, 212, 184, 0.22);
+      border-radius: 10px;
+      padding: 10px 12px;
+      z-index: 6;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 11px;
+      color: #e8d4b8;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+      display: flex; align-items: center; gap: 10px;
+      min-width: 220px;
+    }
+    #music.hidden { display: none; }
+    #music-play {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: 1px solid rgba(232, 212, 184, 0.35);
+      background: rgba(255,255,255,0.06);
+      color: #e8d4b8;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    #music-play:hover { background: rgba(255,255,255,0.12); }
+    #music-label {
+      letter-spacing: 0.08em; text-transform: uppercase;
+      opacity: 0.75; flex-shrink: 0;
+    }
+    #music-volume {
+      -webkit-appearance: none; appearance: none;
+      flex: 1; height: 3px;
+      background: rgba(232, 212, 184, 0.2);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    #music-volume::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #e8d4b8; cursor: pointer; border: 0;
+    }
+    #music-volume::-moz-range-thumb {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #e8d4b8; cursor: pointer; border: 0;
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="loader">Chargement de la scene...</div>
+  <div id="hud"></div>
+
+  <div id="music" aria-label="Lecteur ambiance">
+    <button id="music-play" aria-label="Lecture / pause" title="Lecture / pause">▶</button>
+    <span id="music-label">Ambiance</span>
+    <input id="music-volume" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Volume">
+    <audio id="music-audio" src="./music.mp3" preload="auto" loop></audio>
+  </div>
+
+  <script>
+    (function () {
+      const panel = document.getElementById('music');
+      const audio = document.getElementById('music-audio');
+      const playBtn = document.getElementById('music-play');
+      const volume = document.getElementById('music-volume');
+
+      audio.addEventListener('error', () => panel.classList.add('hidden'));
+
+      audio.volume = parseFloat(volume.value);
+
+      function updateBtn() {
+        playBtn.textContent = audio.paused ? '▶' : '❚❚';
+      }
+
+      function tryPlay() {
+        const p = audio.play();
+        if (p && typeof p.then === 'function') {
+          p.then(updateBtn).catch(() => {
+            const resume = () => {
+              audio.play().then(updateBtn).catch(() => {});
+              window.removeEventListener('pointerdown', resume);
+              window.removeEventListener('keydown', resume);
+            };
+            window.addEventListener('pointerdown', resume, { once: true });
+            window.addEventListener('keydown', resume, { once: true });
+          });
+        }
+      }
+      tryPlay();
+
+      playBtn.addEventListener('click', () => {
+        if (audio.paused) audio.play().then(updateBtn).catch(() => {});
+        else { audio.pause(); updateBtn(); }
+      });
+      audio.addEventListener('play', updateBtn);
+      audio.addEventListener('pause', updateBtn);
+
+      volume.addEventListener('input', () => {
+        audio.volume = parseFloat(volume.value);
+      });
+    })();
+  </script>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
