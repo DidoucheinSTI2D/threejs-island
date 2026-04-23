@@ -56,9 +56,6 @@ async function bootstrap() {
     bloom.setSize(w, h);
   });
 
-  const hud = document.getElementById('hud');
-  let fps = 0, lastFpsUpdate = 0, frames = 0;
-
   const loader = document.getElementById('loader');
   if (loader) loader.classList.add('hidden');
 
@@ -89,23 +86,7 @@ async function bootstrap() {
     particles.update(delta, t);
 
     composer.render();
-
-    frames++;
-    const nowS = performance.now() / 1000;
-    if (nowS - lastFpsUpdate >= 1) {
-      fps = Math.round(frames / (nowS - lastFpsUpdate));
-      frames = 0;
-      lastFpsUpdate = nowS;
-      if (hud) {
-        const info = renderer.info.render;
-        hud.textContent =
-          `FPS: ${fps}\n` +
-          `Triangles: ${info.triangles.toLocaleString()}\n` +
-          `Drawcalls: ${info.calls}`;
-      }
-    }
   }
-  lastFpsUpdate = performance.now() / 1000;
   requestAnimationFrame(tick);
 
   window.__scene = { scene, camera, renderer, composer, sun };
